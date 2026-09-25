@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import torch
@@ -21,23 +22,26 @@ from relmcodec.model import ReLMCodec
 
 
 class WhisperTranscriber:
-    """Match the original English Whisper-Large-v3 WER protocol."""
+    """Transcribe complete English utterances with the official Whisper model."""
 
     def __init__(self, model_name: str, device: torch.device):
         import whisper
         from whisper.normalizers import EnglishTextNormalizer
 
-        self.whisper = whisper
         self.model = whisper.load_model(model_name, device=str(device))
-        self.options = whisper.DecodingOptions(language="en", without_timestamps=True)
         self.normalizer = EnglishTextNormalizer()
         self.device = device
 
     @torch.inference_mode()
     def __call__(self, waveform: np.ndarray) -> str:
-        audio = self.whisper.pad_or_trim(torch.from_numpy(waveform).float())
-        mel = self.whisper.log_mel_spectrogram(audio, self.model.dims.n_mels).to(self.device)
-        return self.normalizer(self.model.decode(mel.unsqueeze(0), self.options)[0].text)
+        result = self.model.transcribe(
+            waveform.astype(np.float32, copy=False),
+            language="en",
+            task="transcribe",
+            fp16=self.device.type == "cuda",
+            verbose=None,
+        )
+        return self.normalizer(result["text"])
 
 
 class SpeakerEncoder:
@@ -45,14 +49,52 @@ class SpeakerEncoder:
 
     def __init__(self, model_dir: Path, device: torch.device):
         checkpoint = model_dir / "wavlm_large_finetune.pth"
-        if not checkpoint.is_file() or not (model_dir / "verification.py").is_file():
-            raise FileNotFoundError(f"Expected verification.py and wavlm_large_finetune.pth in {model_dir}")
+        if not checkpoint.is_file() or not (model_dir / "models" / "ecapa_tdnn.py").is_file():
+            raise FileNotFoundError(f"Expected models/ecapa_tdnn.py and wavlm_large_finetune.pth in {model_dir}")
+        # The s3prl revision used by UniSpeech imports this legacy torchaudio helper.
+        import torchaudio.functional as audio_functional
+
+        if not hasattr(audio_functional, "magphase"):
+            audio_functional.magphase = lambda x, power=1.0: (x.abs().pow(power), torch.angle(x))
         sys.path.insert(0, str(model_dir.resolve()))
         try:
-            from verification import init_model
+            from models.ecapa_tdnn import ECAPA_TDNN_SMALL
+            from s3prl.upstream.wavlm.expert import UpstreamExpert
         finally:
             sys.path.pop(0)
-        self.model = init_model("wavlm_large", checkpoint=str(checkpoint)).to(device).eval()
+
+        # The official SV file already contains all upstream WavLM parameters.
+        # Build its s3prl expert locally; s3prl's old hub URL has expired.
+        state = torch.load(checkpoint, map_location="cpu", weights_only=False)["model"]
+        prefix = "feature_extract.model."
+        upstream_state = {key[len(prefix):]: value for key, value in state.items() if key.startswith(prefix)}
+        config = {
+            "extractor_mode": "layer_norm",
+            "encoder_layers": 24,
+            "encoder_embed_dim": 1024,
+            "encoder_ffn_embed_dim": 4096,
+            "encoder_attention_heads": 16,
+            "layer_norm_first": True,
+            "normalize": True,
+            "relative_position_embedding": True,
+            "num_buckets": 320,
+            "max_distance": 800,
+            "gru_rel_pos": True,
+        }
+        original_load = torch.load
+
+        def load_inline(path, *args, **kwargs):
+            if path == "__wavlm_inline__":
+                return {"cfg": config, "model": upstream_state}
+            return original_load(path, *args, **kwargs)
+
+        with patch.object(torch, "load", side_effect=load_inline):
+            upstream = UpstreamExpert("__wavlm_inline__")
+        with patch.object(torch.hub, "load", return_value=upstream):
+            self.model = ECAPA_TDNN_SMALL(feat_dim=1024, feat_type="wavlm_large")
+        state.pop("loss_calculator.projection.weight", None)
+        self.model.load_state_dict(state, strict=True)
+        self.model = self.model.to(device).eval()
         self.device = device
 
     @torch.inference_mode()

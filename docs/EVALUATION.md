@@ -49,22 +49,42 @@ Install the [official OpenAI Whisper implementation](https://github.com/openai/w
 python -m pip install openai-whisper
 ```
 
-Add `--whisper large-v3 --transcripts data/filelists/transcripts.txt` to either `evaluate.py` command. The script uses English decoding without timestamps, OpenAI Whisper's English text normalizer, and the **mean utterance WER**. The JSON value is a fraction; multiply by 100 for the paper's percentage. The first call downloads Whisper-Large-v3 unless it is already cached. A local Whisper `.pt` path is also accepted.
+Add `--whisper large-v3 --transcripts data/filelists/transcripts.txt` to either `evaluate.py` command. The script transcribes the **complete utterance** in English, applies OpenAI Whisper's English text normalizer, and reports the **mean utterance WER**. The JSON value is a fraction; multiply by 100 for the paper's percentage. The first call downloads Whisper-Large-v3 unless it is already cached. A local Whisper `.pt` path is also accepted.
+
+To score WAVs already reconstructed by section 2, without another codec forward pass:
+
+```bash
+python -m scripts.score_wer_sim \
+  --filelist data/filelists/test-all.txt \
+  --audio-dir outputs/64k/reconstructions \
+  --transcripts data/filelists/transcripts.txt \
+  --whisper large-v3 \
+  --result-json outputs/64k/wer.json
+```
 
 ## 4. Speaker similarity with WavLM-Large-SV
 
 The paper uses the fixed-pretrain **WavLM large** speaker-verification release, with the official [Microsoft UniSpeech speaker-verification wrapper](https://github.com/microsoft/UniSpeech/tree/main/downstreams/speaker_verification). It is separate from the ordinary `microsoft/wavlm-large` self-supervised checkpoint.
 
 1. Clone `https://github.com/microsoft/UniSpeech` and copy `downstreams/speaker_verification/` to a model directory outside this repository.
-2. Download the **WavLM large, Fix pre-train = Yes** checkpoint from the official model table into that directory as `wavlm_large_finetune.pth`.
+2. Download the [official **WavLM large, Fix pre-train = Yes** checkpoint](https://1drv.ms/u/s!AqeByhGUtINrgcp_7CsbcBjYW2Tr-w?e=VeCMic) from the UniSpeech model table into that directory as `wavlm_large_finetune.pth`.
 3. Install the wrapper's dependencies, including the [officially specified s3prl revision](https://github.com/microsoft/UniSpeech/blob/main/downstreams/speaker_verification/README.md):
 
    ```bash
-   python -m pip install fire
    python -m pip install 's3prl @ git+https://github.com/s3prl/s3prl.git@7ab62aaf2606d83da6c71ee74e7d16e0979edbc3'
    ```
 
-The directory must contain `verification.py`, `models/`, and `wavlm_large_finetune.pth`. Add `--wavlm-sv /path/to/wavlm-large-sv-eval` to `evaluate.py`. The script computes cosine similarity between reference and reconstruction embeddings and reports the mean over utterances.
+The directory must contain `models/` and `wavlm_large_finetune.pth`. Add `--wavlm-sv /path/to/wavlm-large-sv-eval` to `evaluate.py`, or use the saved-WAV scorer:
+
+```bash
+python -m scripts.score_wer_sim \
+  --filelist data/filelists/test-all.txt \
+  --audio-dir outputs/64k/reconstructions \
+  --wavlm-sv /path/to/wavlm-large-sv-eval \
+  --result-json outputs/64k/sim.json
+```
+
+Both paths use the official UniSpeech ECAPA-TDNN architecture and the same WavLM-Large-SV checkpoint. The loader takes the upstream WavLM parameters from that checkpoint, so it does not need s3prl's expired WavLM download URL. It requires the UniSpeech-pinned s3prl revision above. SIM is the mean per-utterance cosine similarity between reference and reconstruction embeddings. The saved-WAV path reads 16-bit PCM output; very small differences from the in-memory `evaluate.py` score are expected.
 
 ## 5. UTMOS in its own environment
 
@@ -74,13 +94,29 @@ The original evaluation used the [`UTMOS-demo` `Score` API](https://huggingface.
 git clone https://huggingface.co/spaces/sarulab-speech/UTMOS-demo /path/to/UTMOS-demo
 cd /path/to/UTMOS-demo && git lfs pull && cd -
 
+python -m pip install 'Cython<3' bitarray sacrebleu \
+  'hydra-core==1.3.2' 'omegaconf==2.3.0' \
+  'pytorch-lightning==1.5.10' 'torchmetrics==0.7.2' \
+  'pyDeprecate==0.3.1' tensorboard
+python -m pip install --no-build-isolation \
+  'fairseq @ git+https://github.com/pytorch/fairseq.git@d03f4e771484a433f025f47744017c2eb6e9c6bc'
+
 python scripts/score_utmos.py \
   --audio-dir outputs/64k/reconstructions \
   --utmos-dir /path/to/UTMOS-demo \
   --result-json outputs/64k/utmos.json
 ```
 
-The UTMOS scorer expects `score.py` and `epoch=3-step=7459.ckpt` in that directory. Install the dependencies listed by that upstream project in the UTMOS environment. `score_utmos.py` checks 16 kHz input and writes per-file scores, mean, standard deviation, and count.
+The UTMOS scorer expects `score.py`, `epoch=3-step=7459.ckpt`, and `wav2vec_small.pt` in that directory. Install the dependencies listed by that upstream project in the UTMOS environment. The upstream package pins Fairseq at `d03f4e771484a433f025f47744017c2eb6e9c6bc` and PyTorch Lightning 1.5.10. `score_utmos.py` checks 16 kHz input and writes per-file scores, mean, standard deviation, and count. It supports the original checkpoint format with current PyTorch, but load checkpoint files only from a trusted source.
+
+The full-test verification used Python 3.10.18, PyTorch/torchaudio 2.9.0+cu128, OpenAI Whisper `20250625`, s3prl `0.3.1` at the pinned revision above, Fairseq `1.0.0a0+d03f4e7`, PyTorch Lightning 1.5.10, Hydra Core 1.3.2, and OmegaConf 2.3.0. Evaluator model SHA-256 values were:
+
+| File | SHA-256 |
+| :--- | :--- |
+| `large-v3.pt` | `e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb` |
+| `wavlm_large_finetune.pth` | `cb44af16a20ce497c133cbbaff6cad88728d57bf204048b3fa902cd39feb517b` |
+| `epoch=3-step=7459.ckpt` | `44c57e3e4135a243b43d2c82b6a693fcd56f15f9ad0e1eb2a8b31fdecd3a49b8` |
+| `wav2vec_small.pt` | `c66c39eaed1b79a61ea8573f71e08f6641ff156b6a8f458cfaab53877dfa4a26` |
 
 ## 6. Compare with the paper
 

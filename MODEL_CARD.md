@@ -42,7 +42,7 @@ Across 24 representations under a matched quantizer and language model, pre-quan
 
 ![Table 2 from the ReLMCodec paper: end-to-end reconstruction comparison](assets/paper-table-2-reconstruction.png)
 
-These images are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). Table 2 gives the **paper's** LibriSpeech reconstruction results. The released checkpoints were rerun on all 5,559 test-clean + test-other utterances; [verified release results](docs/RESULTS.md) include exact metrics, per-file JSON, and checkpoint hashes. [Evaluation](docs/EVALUATION.md) gives the reproduction protocol and external WER, SIM, and UTMOS evaluators. Those three external metrics were not freshly rerun for the packaged weights.
+These images are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). Table 2 gives the **paper's** LibriSpeech reconstruction results. The released checkpoints were rerun on all 5,559 test-clean + test-other utterances for **Log-Mel, PESQ, STOI, WER, SIM, and UTMOS**. [Verified release results](docs/RESULTS.md) include exact metrics, per-file JSON, and checkpoint hashes; [Evaluation](docs/EVALUATION.md) gives the tested commands and external evaluator setup.
 
 ## Scope and license
 

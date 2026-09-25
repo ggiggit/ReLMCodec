@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -21,12 +22,32 @@ def main() -> None:
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
-    checkpoint = args.utmos_dir / "epoch=3-step=7459.ckpt"
-    if not (args.utmos_dir / "score.py").is_file() or not checkpoint.is_file():
-        raise FileNotFoundError("UTMOS-demo must contain score.py and epoch=3-step=7459.ckpt")
-    sys.path.insert(0, str(args.utmos_dir.resolve()))
+    utmos_dir = args.utmos_dir.resolve()
+    checkpoint = utmos_dir / "epoch=3-step=7459.ckpt"
+    required = ("score.py", "epoch=3-step=7459.ckpt", "wav2vec_small.pt")
+    missing = [name for name in required if not (utmos_dir / name).is_file()]
+    if missing:
+        raise FileNotFoundError(f"UTMOS-demo is missing: {', '.join(missing)}")
+    sys.path.insert(0, str(utmos_dir))
+    from omegaconf import _utils as omegaconf_utils
     from score import Score
-    scorer = Score(ckpt_path=str(checkpoint), input_sample_rate=16000, device=str(args.device))
+
+    if not hasattr(omegaconf_utils, "is_primitive_type"):
+        # Fairseq's historical checkpoint converter calls this removed helper.
+        omegaconf_utils.is_primitive_type = lambda _: True
+    previous_dir = Path.cwd()
+    previous_load_setting = os.environ.get("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD")
+    try:
+        os.chdir(utmos_dir)
+        # Official Lightning/Fairseq checkpoints contain config objects, not just tensors.
+        os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+        scorer = Score(ckpt_path=str(checkpoint), input_sample_rate=16000, device=str(args.device))
+    finally:
+        os.chdir(previous_dir)
+        if previous_load_setting is None:
+            os.environ.pop("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", None)
+        else:
+            os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = previous_load_setting
     paths = sorted(args.audio_dir.rglob("*.wav"))
     if not paths:
         raise ValueError(f"No .wav files in {args.audio_dir}")

@@ -77,7 +77,7 @@ python evaluate.py \
   --result-json outputs/64k/metrics.json
 ```
 
-This 64K command was rerun on all **5,559** test-clean + test-other utterances with 5,559 valid scores for each core metric; the exact check is in [Verified results](docs/RESULTS.md). Add `--max-files 4` for a quick smoke run. [Evaluation](docs/EVALUATION.md) documents the separate WER, speaker-similarity, and UTMOS evaluators. The P-VQ probes and downstream TTS systems in the paper require separately trained models.
+This command was rerun on all **5,559** test-clean + test-other utterances. WER, speaker similarity, and UTMOS were also freshly scored for **both** released checkpoints on all 5,559 saved reconstructions. See [Verified results](docs/RESULTS.md) for the six metrics and per-file JSON, or [Evaluation](docs/EVALUATION.md) for the exact evaluator setup. Add `--max-files 4` for a quick smoke run. The paper's P-VQ probes and downstream TTS systems require separately trained models.
 
 ## Citation
 
