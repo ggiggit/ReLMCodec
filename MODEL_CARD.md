@@ -4,7 +4,7 @@
 
 [Paper](https://arxiv.org/abs/2608.08286) · [Project page](https://github.com/ggiggit/ReLMCodec) · [Reproduction results](docs/RESULTS.md)
 
-![ReLMCodec architecture](assets/architecture.svg)
+![Figure 3 from the ReLMCodec paper: preserve, control, and refine](assets/paper-figure-3-architecture.png)
 
 This model repository contains the **complete ReLMCodec inference release**: both codec checkpoints, their matching YAML configs, the frozen W2v-BERT 2.0 parameters embedded in each checkpoint, and the code needed to reconstruct audio. The weights have no optimizer, scheduler, discriminator, or RNG state.
 
@@ -36,18 +36,13 @@ python infer.py reconstruct \
 
 The model file and its config must match. Input audio is downmixed and resampled to 16 kHz. `infer.py encode` saves token IDs; `infer.py decode` reconstructs them. See [Inference](docs/INFERENCE.md) for commands and token format.
 
-## Reconstruction quality
+## From the paper
 
-Both released weights were rerun on all **5,559 LibriSpeech test-clean + test-other** utterances. The entries labeled *release* are fresh measurements with the included evaluator; paper entries are targets from the manuscript.
+Across 24 representations under a matched quantizer and language model, pre-quantization phoneme separability correlates with next-token accuracy (Spearman ρ = 0.911). Figure 3 shows how ReLMCodec preserves frozen SSL phoneme structure, controls acoustic adaptation with PAPA, and refines the latent space with a training-only WavLM teacher.
 
-| Variant | Run | Log-Mel ↓ | PESQ-wb ↑ | STOI ↑ |
-| :--- | :--- | ---: | ---: | ---: |
-| 8K | Paper | 1.370 | 2.17 | 0.900 |
-| 8K | Release | **1.370** | **2.171** | **0.900** |
-| 64K | Paper | 1.270 | 2.40 | 0.917 |
-| 64K | Release | **1.287** | **2.372** | **0.916** |
+![Table 2 from the ReLMCodec paper: end-to-end reconstruction comparison](assets/paper-table-2-reconstruction.png)
 
-All three fresh metrics have 5,559 valid values for each checkpoint. [Results](docs/RESULTS.md) contains unrounded means, split means, per-file JSON, environment versions, and commands. [Evaluation](docs/EVALUATION.md) explains the external Whisper, WavLM-SV, and UTMOS evaluators for the remaining reconstruction metrics; those three were not freshly rerun for these packaged weights.
+These images are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). Table 2 gives the **paper's** LibriSpeech reconstruction results. The released checkpoints were rerun on all 5,559 test-clean + test-other utterances; [verified release results](docs/RESULTS.md) include exact metrics, per-file JSON, and checkpoint hashes. [Evaluation](docs/EVALUATION.md) gives the reproduction protocol and external WER, SIM, and UTMOS evaluators. Those three external metrics were not freshly rerun for the packaged weights.
 
 ## Scope and license
 

@@ -2,82 +2,71 @@
 
 # ReLMCodec
 
-**Predictable speech tokens from a single 50 Hz code stream**
+**Predictable speech tokens. One codebook. 50 tokens per second.**
 
 [![Paper](https://img.shields.io/badge/arXiv-2608.08286-b31b1b?style=flat-square)](https://arxiv.org/abs/2608.08286)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-weights-ffcc4d?style=flat-square&logo=huggingface)](https://huggingface.co/hf-wzx1205/ReLMCodec)
 [![ModelScope](https://img.shields.io/badge/ModelScope-weights-536af5?style=flat-square)](https://modelscope.cn/models/wanzixiang/ReLMCodec)
 [![License](https://img.shields.io/badge/license-MIT-299d74?style=flat-square)](LICENSE)
 
-[Paper](https://arxiv.org/abs/2608.08286) · [Weights on Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec) · [Weights on ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec) · [Reproduction results](docs/RESULTS.md)
+[Paper](https://arxiv.org/abs/2608.08286) · [Weights](#checkpoints) · [Quick start](#quick-start) · [Evaluation](docs/EVALUATION.md) · [Verified results](docs/RESULTS.md)
 
 </div>
 
-![ReLMCodec architecture: parallel semantic and acoustic encoders, PAPA, one vector quantizer, and a waveform decoder](assets/architecture.svg)
+ReLMCodec is a **16 kHz, single-stream speech codec** designed for both waveform reconstruction and autoregressive token modeling. It emits 50 tokens/s at **650 bps (8K)** or **800 bps (64K)**. The released inference checkpoints include the frozen W2v-BERT 2.0 frontend, so no separate model download is needed.
 
-ReLMCodec is a **16 kHz speech codec** with one discrete token stream. Its quantizer emits **50 tokens per second** from an 8K or 64K codebook, corresponding to nominal rates of **650 or 800 bps**. This repository packages inference, encode/decode tools, and the protocol for the paper's *speech reconstruction* metrics. Both inference checkpoints include the frozen W2v-BERT 2.0 frontend; no separate encoder download is needed.
+## From the paper
 
-## At a glance
+Across 24 representations tested with the same probing quantizer and language model, pre-quantization phoneme separability correlates strongly with next-token accuracy (**Spearman ρ = 0.911**). ReLMCodec turns that observation into a *preserve → control → refine* design:
 
-| Variant | Codewords | Rate | Released checkpoint | Weight file |
-| :--- | ---: | ---: | :--- | :--- |
-| **ReLMCodec@8K** | 8,192 | 650 bps | 200K perceptual stage | [HF](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k.pt) · [MS](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
-| **ReLMCodec@64K** | 65,536 | 800 bps | 50K additional fine-tune, selected on dev speech | [HF](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k.pt) · [MS](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
+- **Preserve** phoneme structure with frozen W2v-BERT 2.0 features.
+- **Control** reconstruction-driven drift with PAPA's small acoustic residual.
+- **Refine** quantized latents during training with a WavLM-Large L24 teacher, which is absent at inference.
 
-The downloadable files are **inference-only** PyTorch state dictionaries, each about 3.1 GB. They contain no optimizer, scheduler, discriminator, or RNG state. Their SHA-256 hashes and conversion checks are in [Checkpoint provenance](docs/CHECKPOINTS.md). Each checkpoint already contains its frozen W2v-BERT frontend; the download helper places it under `models/` for the CLI.
+<p align="center"><img src="assets/paper-figure-3-architecture.png" alt="Figure 3 from the ReLMCodec paper: preserve, control, and refine architecture" width="100%"></p>
 
-### Full LibriSpeech test-set reconstruction
+**Paper reconstruction results.** Table 2 compares end-to-end systems on LibriSpeech test-clean + test-other. In the paper, ReLMCodec@64K reaches **3.96 WER**, **0.804 speaker similarity**, and **2.40 PESQ** at 800 bps with one codebook. The paper also reports downstream TTS gains in intelligibility and speaker similarity; those TTS models are outside this inference release.
 
-We reran the bundled weights on **all 5,559** test-clean + test-other utterances. The fresh 8K result agrees with the paper at its displayed precision; the available 64K fine-tune is close to the paper's 64K result.
+<p align="center"><img src="assets/paper-table-2-reconstruction.png" alt="Table 2 from the ReLMCodec paper: end-to-end reconstruction comparison" width="100%"></p>
 
-| Variant | Run | Log-Mel ↓ | PESQ-wb ↑ | STOI ↑ |
-| :--- | :--- | ---: | ---: | ---: |
-| 8K | Paper | 1.370 | 2.17 | 0.900 |
-| 8K | **This release** | **1.370** | **2.171** | **0.900** |
-| 64K | Paper | 1.270 | 2.40 | 0.917 |
-| 64K | **This release** | **1.287** | **2.372** | **0.916** |
+The images above are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). They show **paper results**; measurements from the downloadable checkpoints, including the available 64K fine-tune, are recorded separately in [Verified results](docs/RESULTS.md).
 
-Every fresh metric has 5,559 valid values. [Results and per-file JSON](docs/RESULTS.md) record the environment, exact scores, and checkpoint hashes. The paper also reports WER, speaker similarity, and UTMOS; [Evaluation](docs/EVALUATION.md) explains how to run their external evaluators. Those three metrics were **not freshly rerun** for the released weights. Historical full-test records are labeled separately in `docs/results/`.
+## Checkpoints
 
-## Get started
+| Model | Codebook | Rate | Download |
+| :--- | ---: | ---: | :--- |
+| **ReLMCodec@8K** | 8,192 | 650 bps | [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k.pt) · [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
+| **ReLMCodec@64K** | 65,536 | 800 bps | [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k.pt) · [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
 
-Use Python **3.10 or 3.11** on Linux. A CUDA GPU is recommended; CPU inference works. Run these commands from a checkout of this repository. Install the [PyTorch build](https://pytorch.org/get-started/locally/) matching your machine if CUDA 12.8 is unavailable.
+Each ~3.1 GB file contains inference weights only, with no optimizer or training state. The 8K checkpoint comes from the 200K perceptual stage; the released 64K checkpoint is the best available retained fine-tune, selected on a separate dev set. See [checkpoint provenance](docs/CHECKPOINTS.md) for hashes and the distinction from the paper's 64K table.
+
+## Quick start
+
+Use Python **3.10 or 3.11** on Linux. Install a [PyTorch build](https://pytorch.org/get-started/locally/) matching your machine if CUDA 12.8 is unavailable.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
+python -m venv .venv && source .venv/bin/activate
 python -m pip install torch==2.9.0 torchaudio==2.9.0 \
   --index-url https://download.pytorch.org/whl/cu128
 python -m pip install -e '.[hub-hf]'
-
 python scripts/download_weights.py --source hf --variant 64k
 export USE_TF=0
 python scripts/smoke_test.py --variant 64k
-```
 
-The download helper verifies the published SHA-256 and skips a matching local file. For ModelScope, install `pip install -e '.[hub-ms]'` and use `--source modelscope`. Choose `--variant 8k` or `--variant all` to fetch the other checkpoint. No additional pretrained model is needed.
-
-### Reconstruct a WAV
-
-```bash
 python infer.py reconstruct \
   --config configs/relmcodec_64k.yaml \
   --checkpoint models/relmcodec_64k.pt \
-  --input input.wav \
-  --output reconstructed.wav
+  --input input.wav --output reconstructed.wav
 ```
 
-Input is converted to mono 16 kHz. Use the matching `relmcodec_8k.yaml` and `relmcodec_8k.pt` for the 8K model. The CLI also supports `encode` to save token IDs and `decode` to turn saved IDs back into audio; run `python infer.py --help` for arguments. Example commands and token details are in [Inference](docs/INFERENCE.md).
+For ModelScope, install `.[hub-ms]` and pass `--source modelscope`. Use `--variant 8k` for the 8K model. The download helper checks SHA-256 before using a file. See [Inference](docs/INFERENCE.md) for token `encode`/`decode` commands and audio details.
 
-### Reproduce the paper's reconstruction metrics
+## Reproduce reconstruction metrics
 
 ```bash
 python -m pip install -e '.[eval]'
 python scripts/prepare_librispeech_eval.py \
-  --root /datasets/LibriSpeech \
-  --output-dir data/filelists
-
+  --root /datasets/LibriSpeech --output-dir data/filelists
 python evaluate.py \
   --config configs/relmcodec_64k.yaml \
   --checkpoint models/relmcodec_64k.pt \
@@ -86,21 +75,7 @@ python evaluate.py \
   --result-json outputs/64k/metrics.json
 ```
 
-This computes seven-resolution Log-Mel L1, wide-band PESQ, and STOI, and saves every reconstruction. Add Whisper-Large-v3 and WavLM-Large-SV to score WER and speaker similarity; run UTMOS on the saved WAV files. The exact evaluator models, commands, metric units, and integrity checks are in [Evaluation](docs/EVALUATION.md). Use `--max-files 4` for a data-backed smoke run.
-
-## Repository map
-
-| Path | Purpose |
-| :--- | :--- |
-| [`relmcodec/`](relmcodec/) | W2v-BERT and acoustic encoders, PAPA, vector quantizer, Vocos/ISTFT decoder |
-| [`configs/`](configs/) | Checkpoint-matched 8K and 64K architecture settings |
-| [`models/`](models/) | Download target for the inference checkpoints; local W2v-BERT config |
-| [`infer.py`](infer.py), [`evaluate.py`](evaluate.py) | Inference CLI and reconstruction evaluator |
-| [`scripts/`](scripts/) | Weight download, LibriSpeech manifests, smoke test, UTMOS scoring |
-| [`docs/`](docs/) | Inference, evaluation, results, and checkpoint provenance |
-| [`MODEL_CARD.md`](MODEL_CARD.md) | Model card mirrored on both weight hubs |
-
-The released codec weights support reconstruction and token extraction. The paper's P-VQ predictability probes and downstream TTS systems require separately trained models. The checkpoint implementation uses Euclidean VQ assignment although a manuscript description says L2-normalized assignment; [Checkpoint provenance](docs/CHECKPOINTS.md) explains why the configs follow the actual weights.
+This computes Log-Mel, wide-band PESQ, and STOI for LibriSpeech test-clean + test-other. [Evaluation](docs/EVALUATION.md) documents the external WER, speaker-similarity, and UTMOS evaluators; [Verified results](docs/RESULTS.md) contains the complete fresh reconstruction run and per-file data. The P-VQ probes and downstream TTS systems in the paper require separately trained models.
 
 ## Citation
 
@@ -116,4 +91,4 @@ The released codec weights support reconstruction and token extraction. The pape
 }
 ```
 
-Code is released under [MIT](LICENSE). The embedded W2v-BERT parameters and vendored components retain their upstream terms; see [Third-party notices](THIRD_PARTY_NOTICES.md).
+Code is [MIT licensed](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for embedded W2v-BERT parameters and vendored components.
