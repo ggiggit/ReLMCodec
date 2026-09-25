@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WEIGHTS = {
     "8k": ("relmcodec_8k.pt", "b55ee1aa176a7a9b3e00b952a07f4932c1770103e6e6e4e4bd91e0d6345d3335"),
     "64k": ("relmcodec_64k.pt", "951abb8e1b8af372c963b9ca360c3246ee9ed255a6c0f251018fe3223846231a"),
-    "8k-stage1": ("relmcodec_8k_stage1.pt", "d662a733f87b8e51eb7f8e3ddecd831112f4694dec6dddb687e5ff4a5ea223fc"),
-    "64k-stage1": ("relmcodec_64k_stage1.pt", "9b351388e91fe60622d197271d886060546b3c78bd53ef6c05740f5db7902e03"),
+    "8k-stage1": ("relmcodec_8k_stage1.pt", "aa4d22657901702d2552aa33d726fccf3bdb874aa37f7c2b05a4efa8022d8844"),
+    "64k-stage1": ("relmcodec_64k_stage1.pt", "f2bccf097f5336f235d419581d4ca8d8d9a5583ac3fba9b728eb16a9c87ce4a5"),
 }
 REPOSITORIES = {
     "hf": "hf-wzx1205/ReLMCodec",
