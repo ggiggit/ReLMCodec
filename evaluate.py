@@ -19,6 +19,7 @@ from relmcodec.config import load_config
 from relmcodec.data import read_filelist
 from relmcodec.mel_loss import MultiResolutionMelSpectrogramLoss
 from relmcodec.model import ReLMCodec
+from relmcodec.results import TEST_SPLITS, save_metric_results
 
 
 class WhisperTranscriber:
@@ -191,6 +192,7 @@ def main() -> None:
 
     metrics = ("mel", "pesq", "stoi", "sim", "wer")
     result = {
+        "split": "test-all",
         "checkpoint": str(args.checkpoint),
         "config": str(args.config),
         "filelist": str(args.filelist),
@@ -198,13 +200,12 @@ def main() -> None:
         "metrics": {name: summarize(rows, name) for name in metrics if summarize(rows, name) is not None},
         "split_metrics": {
             split: {name: summarize(subset, name) for name in metrics if summarize(subset, name) is not None}
-            for split in ("test-clean", "test-other")
+            for split in TEST_SPLITS
             if (subset := [row for row in rows if row["split"] == split])
         },
         "per_file": rows,
     }
-    args.result_json.parent.mkdir(parents=True, exist_ok=True)
-    args.result_json.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    save_metric_results(args.result_json, result)
     print(json.dumps({key: value for key, value in result.items() if key != "per_file"}, indent=2))
 
 

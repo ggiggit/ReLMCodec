@@ -13,6 +13,27 @@ import soundfile as sf
 import torch
 from tqdm import tqdm
 
+from relmcodec.results import TEST_SPLITS, save_json, split_result_path
+
+
+def save_utmos_results(path: Path, rows: list[dict]) -> dict:
+    values = [row["utmos"] for row in rows]
+    result = {"split": "test-all", "count": len(rows), "mean": float(np.mean(values)), "std": float(np.std(values)), "per_file": rows}
+    save_json(path, result)
+    for split in TEST_SPLITS:
+        subset = [row for row in rows if row["split"] == split]
+        if not subset:
+            continue
+        split_values = [row["utmos"] for row in subset]
+        save_json(split_result_path(path, split), {
+            "split": split,
+            "count": len(subset),
+            "mean": float(np.mean(split_values)),
+            "std": float(np.std(split_values)),
+            "per_file": subset,
+        })
+    return result
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -61,11 +82,9 @@ def main() -> None:
             score = scorer.score(tensor)
         if torch.is_tensor(score):
             score = score.detach().cpu().numpy()
-        rows.append({"file": str(path), "utmos": float(np.asarray(score).reshape(-1)[0])})
-    values = [row["utmos"] for row in rows]
-    result = {"count": len(rows), "mean": float(np.mean(values)), "std": float(np.std(values)), "per_file": rows}
-    args.result_json.parent.mkdir(parents=True, exist_ok=True)
-    args.result_json.write_text(json.dumps(result, indent=2), encoding="utf-8")
+        split = path.parent.name if path.parent.name in TEST_SPLITS else "other"
+        rows.append({"file": str(path), "split": split, "utmos": float(np.asarray(score).reshape(-1)[0])})
+    result = save_utmos_results(args.result_json, rows)
     print(json.dumps({key: value for key, value in result.items() if key != "per_file"}, indent=2))
 
 

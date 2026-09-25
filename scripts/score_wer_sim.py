@@ -14,6 +14,7 @@ from tqdm import tqdm
 from evaluate import SpeakerEncoder, WhisperTranscriber, summarize, transcript_map
 from relmcodec.audio import load_audio
 from relmcodec.data import read_filelist
+from relmcodec.results import TEST_SPLITS, save_metric_results
 
 
 def main() -> None:
@@ -67,19 +68,19 @@ def main() -> None:
 
     names = ("wer", "sim")
     result = {
+        "split": "test-all",
         "filelist": str(args.filelist),
         "audio_dir": str(args.audio_dir),
         "num_files": len(rows),
         "metrics": {name: summarize(rows, name) for name in names if summarize(rows, name) is not None},
         "split_metrics": {
             split: {name: summarize(subset, name) for name in names if summarize(subset, name) is not None}
-            for split in ("test-clean", "test-other")
+            for split in TEST_SPLITS
             if (subset := [row for row in rows if row["split"] == split])
         },
         "per_file": rows,
     }
-    args.result_json.parent.mkdir(parents=True, exist_ok=True)
-    args.result_json.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    save_metric_results(args.result_json, result)
     print(json.dumps({key: value for key, value in result.items() if key != "per_file"}, indent=2))
 
 

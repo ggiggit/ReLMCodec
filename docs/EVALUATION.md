@@ -21,14 +21,14 @@ python evaluate.py \
   --config configs/relmcodec_64k.yaml \
   --filelist data/filelists/test-all.txt \
   --output-dir outputs/64k/reconstructions \
-  --result-json outputs/64k/metrics.json
+  --result-json outputs/64k/metrics_test-all.json
 
 python evaluate.py \
   --checkpoint models/relmcodec_8k.pt \
   --config configs/relmcodec_8k.yaml \
   --filelist data/filelists/test-all.txt \
   --output-dir outputs/8k/reconstructions \
-  --result-json outputs/8k/metrics.json
+  --result-json outputs/8k/metrics_test-all.json
 ```
 
 Each run computes:
@@ -39,7 +39,7 @@ Each run computes:
 | PESQ | `pesq(..., mode="wb")` on 16 kHz reference and reconstruction | `pesq` |
 | STOI | `pystoi.stoi(..., extended=False)` on 16 kHz audio | `stoi` |
 
-Inputs are mono and resampled to 16 kHz. Reference and reconstruction are trimmed to their common length before metric calculation. The JSON records a combined mean, per-split means, sample counts, and per-file values. Report the **combined mean over 5,559 files**. PESQ/STOI errors are recorded per file; check that each metric's count equals `num_files` before comparing with the paper.
+Inputs are mono and resampled to 16 kHz. Reference and reconstruction are trimmed to their common length before metric calculation. One run writes three files: `metrics_test-clean.json` (2,620 utterances), `metrics_test-other.json` (2,939), and `metrics_test-all.json` (5,559). Each contains its own metrics, count, and per-file values. Compare the **test-all** mean with the paper. PESQ/STOI errors are recorded per file; check each metric count before comparing.
 
 ## 3. WER with Whisper-Large-v3
 
@@ -59,7 +59,7 @@ python -m scripts.score_wer_sim \
   --audio-dir outputs/64k/reconstructions \
   --transcripts data/filelists/transcripts.txt \
   --whisper large-v3 \
-  --result-json outputs/64k/wer.json
+  --result-json outputs/64k/wer_test-all.json
 ```
 
 ## 4. Speaker similarity with WavLM-Large-SV
@@ -81,7 +81,7 @@ python -m scripts.score_wer_sim \
   --filelist data/filelists/test-all.txt \
   --audio-dir outputs/64k/reconstructions \
   --wavlm-sv /path/to/wavlm-large-sv-eval \
-  --result-json outputs/64k/sim.json
+  --result-json outputs/64k/sim_test-all.json
 ```
 
 Both paths use the official UniSpeech ECAPA-TDNN architecture and the same WavLM-Large-SV checkpoint. The loader takes the upstream WavLM parameters from that checkpoint, so it does not need s3prl's expired WavLM download URL. It requires the UniSpeech-pinned s3prl revision above. SIM is the mean per-utterance cosine similarity between reference and reconstruction embeddings. The saved-WAV path reads 16-bit PCM output; very small differences from the in-memory `evaluate.py` score are expected.
@@ -104,10 +104,10 @@ python -m pip install --no-build-isolation \
 python scripts/score_utmos.py \
   --audio-dir outputs/64k/reconstructions \
   --utmos-dir /path/to/UTMOS-demo \
-  --result-json outputs/64k/utmos.json
+  --result-json outputs/64k/utmos_test-all.json
 ```
 
-The UTMOS scorer expects `score.py`, `epoch=3-step=7459.ckpt`, and `wav2vec_small.pt` in that directory. Install the dependencies listed by that upstream project in the UTMOS environment. The upstream package pins Fairseq at `d03f4e771484a433f025f47744017c2eb6e9c6bc` and PyTorch Lightning 1.5.10. `score_utmos.py` checks 16 kHz input and writes per-file scores, mean, standard deviation, and count. It supports the original checkpoint format with current PyTorch, but load checkpoint files only from a trusted source.
+The WER, SIM, and UTMOS scorers also write matching `test-clean`, `test-other`, and `test-all` JSON files. The UTMOS scorer expects `score.py`, `epoch=3-step=7459.ckpt`, and `wav2vec_small.pt` in that directory. Install the dependencies listed by that upstream project in the UTMOS environment. The upstream package pins Fairseq at `d03f4e771484a433f025f47744017c2eb6e9c6bc` and PyTorch Lightning 1.5.10. `score_utmos.py` checks 16 kHz input and writes per-file scores, mean, standard deviation, and count. It supports the original checkpoint format with current PyTorch, but load checkpoint files only from a trusted source.
 
 ## 6. Compare with the paper
 

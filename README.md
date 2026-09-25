@@ -38,7 +38,7 @@ The images above are cropped from the [paper PDF](https://arxiv.org/pdf/2608.082
 
 Each ~3.1 GB file contains the codec and frozen W2v-BERT frontend, with no training state. The 8K checkpoint comes from the 200K perceptual stage. The 64K checkpoint is the best available retained fine-tune, selected on a separate development set; it differs from the checkpoint behind the paper's 64K table. See [checkpoint notes](docs/CHECKPOINTS.md).
 
-For ablations, the [8K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k_pre_perceptual.pt) and [64K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k_pre_perceptual.pt) **pre-perceptual** checkpoints are also available on [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/tree/main/models) and [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec). They are supplementary stage-1 weights. The primary checkpoints above use perceptual training.
+The [8K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k_stage1.pt) and [64K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k_stage1.pt) **Stage 1 checkpoints** are also available on [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/tree/main/models) and [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec). Stage 1 does not use the WavLM perceptual loss. These weights are provided for comparison; the primary checkpoints above include perceptual training.
 
 ## Quick start
 
@@ -76,10 +76,10 @@ python evaluate.py \
   --checkpoint models/relmcodec_64k.pt \
   --filelist data/filelists/test-all.txt \
   --output-dir outputs/64k/reconstructions \
-  --result-json outputs/64k/metrics.json
+  --result-json outputs/64k/metrics_test-all.json
 ```
 
-This computes Log-Mel, PESQ, and STOI. [Evaluation](docs/EVALUATION.md) covers the paper's WER, speaker similarity, and UTMOS protocols. Add `--max-files 4` for a quick smoke run. The paper's P-VQ probes and downstream TTS systems require separately trained models.
+This computes Log-Mel, PESQ, and STOI, saving `metrics_test-clean.json`, `metrics_test-other.json`, and `metrics_test-all.json` from one run. [Evaluation](docs/EVALUATION.md) covers the paper's WER, speaker similarity, and UTMOS protocols. Add `--max-files 4` for a quick smoke run. The paper's P-VQ probes and downstream TTS systems require separately trained models.
 
 ## Citation
 

@@ -15,7 +15,7 @@ This model repository contains the **complete ReLMCodec inference release**: bot
 
 Each checkpoint is about 3.1 GB. The 8K checkpoint comes from the 200K perceptual stage; the 64K checkpoint is the best available retained fine-tune, selected on a separate development set. It differs from the weight behind the paper's 64K table. See [checkpoint notes](docs/CHECKPOINTS.md).
 
-**Supplementary stage-1 weights:** `models/relmcodec_8k_pre_perceptual.pt` and `models/relmcodec_64k_pre_perceptual.pt` capture the models before WavLM perceptual training. Use the same matching 8K or 64K config. The primary checkpoints in the table above are the perceptually trained models used for the release.
+**Stage 1 checkpoints (supplementary):** `models/relmcodec_8k_stage1.pt` and `models/relmcodec_64k_stage1.pt`. Stage 1 does not use the WavLM perceptual loss. Use the matching 8K or 64K config. The primary checkpoints in the table above include perceptual training.
 
 ## Quick inference
 
