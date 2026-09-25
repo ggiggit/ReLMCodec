@@ -5,7 +5,7 @@
 **Predictable speech tokens from a single 50 Hz code stream**
 
 [![Paper](https://img.shields.io/badge/arXiv-2608.08286-b31b1b?style=flat-square)](https://arxiv.org/abs/2608.08286)
-[![Hugging Face](https://img.shields.io/badge/🤗-Hugging%20Face-ffcc4d?style=flat-square)](https://huggingface.co/hf-wzx1205/ReLMCodec)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-weights-ffcc4d?style=flat-square&logo=huggingface)](https://huggingface.co/hf-wzx1205/ReLMCodec)
 [![ModelScope](https://img.shields.io/badge/ModelScope-weights-536af5?style=flat-square)](https://modelscope.cn/models/wanzixiang/ReLMCodec)
 [![License](https://img.shields.io/badge/license-MIT-299d74?style=flat-square)](LICENSE)
 
