@@ -1,8 +1,6 @@
 <div align="center">
 
-# ReLMCodec
-
-**Predictable speech tokens. One codebook. 50 tokens per second.**
+# ReLMCodec: Designing Predictable Speech Tokens from Pre-Quantization Phoneme Structure
 
 [![Paper](https://img.shields.io/badge/arXiv-2608.08286-b31b1b?style=flat-square)](https://arxiv.org/abs/2608.08286)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-weights-ffcc4d?style=flat-square&logo=huggingface)](https://huggingface.co/hf-wzx1205/ReLMCodec)
