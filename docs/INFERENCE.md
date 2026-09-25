@@ -1,6 +1,6 @@
 # Inference
 
-Run every command from the repository root with the [installation steps](../README.md#get-started) completed. The 8K config and checkpoint must be used together, as must the 64K pair.
+Run every command from the repository root with the [installation steps](../README.md#quick-start) completed. The 8K config and checkpoint must be used together, as must the 64K pair.
 
 ## Check the checkpoint
 
@@ -9,7 +9,7 @@ python scripts/download_weights.py --source hf --variant 64k
 python scripts/smoke_test.py --variant 64k
 ```
 
-The helper accepts `--source modelscope` and `--variant 8k` or `all`. It checks the full SHA-256 against the published value. The smoke test loads every tensor strictly, encodes one second of synthetic audio, decodes it, and checks finite output.
+The helper accepts `--source modelscope` and `--variant 8k` or `all`. It verifies the download. The smoke test loads the model, encodes one second of synthetic audio, decodes it, and checks finite output.
 
 ## Reconstruct an audio file
 
@@ -45,4 +45,4 @@ For direct Python use, load the YAML with `relmcodec.config.load_config`, create
 
 ## Evaluation
 
-[Evaluation](EVALUATION.md) provides the LibriSpeech manifest, metric definitions, Whisper/WavLM-SV/UTMOS setup, and commands for the paper's reconstruction table. [Results](RESULTS.md) records the release checkpoint's full-test run and per-file metrics.
+[Evaluation](EVALUATION.md) provides the LibriSpeech manifest, metric definitions, Whisper/WavLM-SV/UTMOS setup, and commands for the paper's reconstruction table.

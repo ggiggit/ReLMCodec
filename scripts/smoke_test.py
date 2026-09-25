@@ -18,11 +18,12 @@ from relmcodec.model import ReLMCodec
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variant", choices=("8k", "64k"), default="64k")
+    parser.add_argument("--checkpoint", type=Path, help="Optional checkpoint path, including a supplementary weight")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     config = load_config(root / "configs" / f"relmcodec_{args.variant}.yaml")
-    checkpoint = root / "models" / f"relmcodec_{args.variant}.pt"
+    checkpoint = args.checkpoint or root / "models" / f"relmcodec_{args.variant}.pt"
     model = ReLMCodec.from_checkpoint(checkpoint, config.model, config.quantizer).to(args.device).eval()
     audio = 0.05 * torch.randn(1, 16000, device=args.device, generator=torch.Generator(device=args.device).manual_seed(1234))
     with torch.inference_mode():

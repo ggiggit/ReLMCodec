@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WEIGHTS = {
     "8k": ("relmcodec_8k.pt", "b55ee1aa176a7a9b3e00b952a07f4932c1770103e6e6e4e4bd91e0d6345d3335"),
     "64k": ("relmcodec_64k.pt", "951abb8e1b8af372c963b9ca360c3246ee9ed255a6c0f251018fe3223846231a"),
+    "8k-pre": ("relmcodec_8k_pre_perceptual.pt", "d662a733f87b8e51eb7f8e3ddecd831112f4694dec6dddb687e5ff4a5ea223fc"),
+    "64k-pre": ("relmcodec_64k_pre_perceptual.pt", "9b351388e91fe60622d197271d886060546b3c78bd53ef6c05740f5db7902e03"),
 }
 REPOSITORIES = {
     "hf": "hf-wzx1205/ReLMCodec",
@@ -53,10 +55,11 @@ def fetch(source: str, relative_path: str) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", choices=tuple(REPOSITORIES), default="hf")
-    parser.add_argument("--variant", choices=("8k", "64k", "all"), default="all")
+    parser.add_argument("--variant", choices=(*WEIGHTS, "all"), default="all",
+                        help="all downloads the two primary, perceptually trained checkpoints")
     args = parser.parse_args()
 
-    variants = tuple(WEIGHTS) if args.variant == "all" else (args.variant,)
+    variants = ("8k", "64k") if args.variant == "all" else (args.variant,)
     for variant in variants:
         filename, expected = WEIGHTS[variant]
         destination = ROOT / "models" / filename
@@ -65,14 +68,14 @@ def main() -> None:
             continue
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.exists():
-            print(f"{variant}: local file failed SHA-256; downloading a fresh copy")
+            print(f"{variant}: local file failed verification; downloading a fresh copy")
         downloaded = fetch(args.source, f"models/{filename}")
         if downloaded.resolve() != destination.resolve():
             downloaded.replace(destination)
         actual = sha256(destination)
         if actual != expected:
-            raise RuntimeError(f"{variant}: SHA-256 mismatch ({actual}); expected {expected}")
-        print(f"{variant}: verified {destination} ({actual})")
+            raise RuntimeError(f"{variant}: downloaded file failed verification")
+        print(f"{variant}: verified {destination}")
 
 
 if __name__ == "__main__":

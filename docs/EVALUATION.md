@@ -1,6 +1,6 @@
 # Reconstruction evaluation
 
-This guide reproduces the **reconstruction** part of the ReLMCodec paper. It uses the complete LibriSpeech test-clean and test-other splits, not the 50-file dev set used to select the bundled 64K checkpoint. Run all commands from the repository root after installing `python -m pip install -e '.[eval]'` and downloading the matching checkpoint with `scripts/download_weights.py`.
+This guide covers the **reconstruction** metrics in the ReLMCodec paper using LibriSpeech test-clean and test-other. Run commands from the repository root after installing `python -m pip install -e '.[eval]'` and downloading the matching checkpoint with `scripts/download_weights.py`.
 
 ## 1. Data and manifest
 
@@ -109,15 +109,6 @@ python scripts/score_utmos.py \
 
 The UTMOS scorer expects `score.py`, `epoch=3-step=7459.ckpt`, and `wav2vec_small.pt` in that directory. Install the dependencies listed by that upstream project in the UTMOS environment. The upstream package pins Fairseq at `d03f4e771484a433f025f47744017c2eb6e9c6bc` and PyTorch Lightning 1.5.10. `score_utmos.py` checks 16 kHz input and writes per-file scores, mean, standard deviation, and count. It supports the original checkpoint format with current PyTorch, but load checkpoint files only from a trusted source.
 
-The full-test verification used Python 3.10.18, PyTorch/torchaudio 2.9.0+cu128, OpenAI Whisper `20250625`, s3prl `0.3.1` at the pinned revision above, Fairseq `1.0.0a0+d03f4e7`, PyTorch Lightning 1.5.10, Hydra Core 1.3.2, and OmegaConf 2.3.0. Evaluator model SHA-256 values were:
-
-| File | SHA-256 |
-| :--- | :--- |
-| `large-v3.pt` | `e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb` |
-| `wavlm_large_finetune.pth` | `cb44af16a20ce497c133cbbaff6cad88728d57bf204048b3fa902cd39feb517b` |
-| `epoch=3-step=7459.ckpt` | `44c57e3e4135a243b43d2c82b6a693fcd56f15f9ad0e1eb2a8b31fdecd3a49b8` |
-| `wav2vec_small.pt` | `c66c39eaed1b79a61ea8573f71e08f6641ff156b6a8f458cfaab53877dfa4a26` |
-
 ## 6. Compare with the paper
 
 | Model | WER ↓ | SIM ↑ | Log-Mel ↓ | PESQ ↑ | STOI ↑ | UTMOS ↑ |
@@ -125,6 +116,4 @@ The full-test verification used Python 3.10.18, PyTorch/torchaudio 2.9.0+cu128, 
 | ReLMCodec@8K | 4.16% | 0.749 | 1.370 | 2.17 | 0.900 | 4.03 |
 | ReLMCodec@64K | 3.96% | 0.804 | 1.270 | 2.40 | 0.917 | 4.07 |
 
-The 8K file is the same perceptual 200K checkpoint family used for its paper row. The bundled 64K file is the **available 50K additional fine-tune**. The closest retained full-test record to the paper's 64K row used a 30K fine-tune checkpoint; its weight file was unavailable for this package. Exact 64K equality is therefore not expected even with a matched protocol. Historical full-test result JSON for the original 8K and 30K evaluation is retained under [`results/`](results/); those files are reference evidence, not output from this repository's new commands. Fresh full-test results from this repository are in [`RESULTS.md`](RESULTS.md).
-
-For a reproducible run, record `torch`, `torchaudio`, `transformers`, `pesq`, `pystoi`, Whisper, WavLM-SV, and UTMOS versions along with the checkpoint SHA-256. The default evaluator writes saved audio as PCM WAV; Log-Mel/PESQ/STOI/WER/SIM are computed from the in-memory float reconstruction before file writing. UTMOS reads the saved WAV files.
+These are **paper results**, not measured values for the downloadable files. The bundled 64K weight is a different fine-tune from the paper's 64K row; see [checkpoint notes](CHECKPOINTS.md). For a reproducible comparison, record evaluator package versions and use the complete 5,559-file manifest. The standalone WER/SIM and UTMOS scorers read saved PCM WAV files.

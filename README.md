@@ -7,7 +7,7 @@
 [![ModelScope](https://img.shields.io/badge/ModelScope-weights-536af5?style=flat-square)](https://modelscope.cn/models/wanzixiang/ReLMCodec)
 [![License](https://img.shields.io/badge/license-MIT-299d74?style=flat-square)](LICENSE)
 
-[Paper](https://arxiv.org/abs/2608.08286) · [Weights](#checkpoints) · [Quick start](#quick-start) · [Evaluation](docs/EVALUATION.md) · [Verified results](docs/RESULTS.md)
+[Paper](https://arxiv.org/abs/2608.08286) · [Weights](#checkpoints) · [Quick start](#quick-start) · [Evaluation](docs/EVALUATION.md)
 
 </div>
 
@@ -27,7 +27,7 @@ Across 24 representations tested with the same probing quantizer and language mo
 
 <p align="center"><img src="assets/paper-table-2-reconstruction.png" alt="Table 2 from the ReLMCodec paper: end-to-end reconstruction comparison" width="100%"></p>
 
-The images above are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). They show **paper results**; measurements from the downloadable checkpoints, including the available 64K fine-tune, are recorded separately in [Verified results](docs/RESULTS.md).
+The images above are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). The table shows results reported in the paper.
 
 ## Checkpoints
 
@@ -36,7 +36,9 @@ The images above are cropped from the [paper PDF](https://arxiv.org/pdf/2608.082
 | **ReLMCodec@8K** | 8,192 | 650 bps | [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k.pt) · [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
 | **ReLMCodec@64K** | 65,536 | 800 bps | [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k.pt) · [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec) |
 
-Each ~3.1 GB file contains inference weights only, with no optimizer or training state. The 8K checkpoint comes from the 200K perceptual stage; the released 64K checkpoint is the best available retained fine-tune, selected on a separate dev set. See [checkpoint provenance](docs/CHECKPOINTS.md) for hashes and the distinction from the paper's 64K table.
+Each ~3.1 GB file contains the codec and frozen W2v-BERT frontend, with no training state. The 8K checkpoint comes from the 200K perceptual stage. The 64K checkpoint is the best available retained fine-tune, selected on a separate development set; it differs from the checkpoint behind the paper's 64K table. See [checkpoint notes](docs/CHECKPOINTS.md).
+
+For ablations, the [8K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_8k_pre_perceptual.pt) and [64K](https://huggingface.co/hf-wzx1205/ReLMCodec/blob/main/models/relmcodec_64k_pre_perceptual.pt) **pre-perceptual** checkpoints are also available on [Hugging Face](https://huggingface.co/hf-wzx1205/ReLMCodec/tree/main/models) and [ModelScope](https://modelscope.cn/models/wanzixiang/ReLMCodec). They are supplementary stage-1 weights. The primary checkpoints above use perceptual training.
 
 ## Quick start
 
@@ -57,7 +59,7 @@ python infer.py reconstruct \
   --input input.wav --output reconstructed.wav
 ```
 
-For ModelScope, install `.[hub-ms]` and pass `--source modelscope`. Use `--variant 8k` for the 8K model. The download helper checks SHA-256 before using a file. See [Inference](docs/INFERENCE.md) for token `encode`/`decode` commands and audio details.
+For ModelScope, install `.[hub-ms]` and pass `--source modelscope`. Use `--variant 8k` for the 8K model. The download helper verifies the file before use. See [Inference](docs/INFERENCE.md) for token `encode`/`decode` commands and audio details.
 
 ## Reproduce reconstruction metrics
 
@@ -77,7 +79,7 @@ python evaluate.py \
   --result-json outputs/64k/metrics.json
 ```
 
-This command was rerun on all **5,559** test-clean + test-other utterances. WER, speaker similarity, and UTMOS were also freshly scored for **both** released checkpoints on all 5,559 saved reconstructions. See [Verified results](docs/RESULTS.md) for the six metrics and per-file JSON, or [Evaluation](docs/EVALUATION.md) for the exact evaluator setup. Add `--max-files 4` for a quick smoke run. The paper's P-VQ probes and downstream TTS systems require separately trained models.
+This computes Log-Mel, PESQ, and STOI. [Evaluation](docs/EVALUATION.md) covers the paper's WER, speaker similarity, and UTMOS protocols. Add `--max-files 4` for a quick smoke run. The paper's P-VQ probes and downstream TTS systems require separately trained models.
 
 ## Citation
 

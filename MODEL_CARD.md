@@ -1,19 +1,21 @@
-# ReLMCodec · Inference checkpoints
+# ReLMCodec: Designing Predictable Speech Tokens from Pre-Quantization Phoneme Structure
 
 **Single-stream, 50 Hz speech coding at 650 / 800 bps.**
 
-[Paper](https://arxiv.org/abs/2608.08286) · [Project page](https://github.com/ggiggit/ReLMCodec) · [Reproduction results](docs/RESULTS.md)
+[Paper](https://arxiv.org/abs/2608.08286) · [Project page](https://github.com/ggiggit/ReLMCodec) · [Evaluation guide](docs/EVALUATION.md)
 
 ![Figure 3 from the ReLMCodec paper: preserve, control, and refine](assets/paper-figure-3-architecture.png)
 
 This model repository contains the **complete ReLMCodec inference release**: both codec checkpoints, their matching YAML configs, the frozen W2v-BERT 2.0 parameters embedded in each checkpoint, and the code needed to reconstruct audio. The weights have no optimizer, scheduler, discriminator, or RNG state.
 
-| Variant | Codebook | Rate | Checkpoint | Size | SHA-256 |
-| :--- | ---: | ---: | :--- | ---: | :--- |
-| 8K | 8,192 | 650 bps | `models/relmcodec_8k.pt` | 3.13 GB | `b55ee1aa176a7a9b3e00b952a07f4932c1770103e6e6e4e4bd91e0d6345d3335` |
-| 64K | 65,536 | 800 bps | `models/relmcodec_64k.pt` | 3.14 GB | `951abb8e1b8af372c963b9ca360c3246ee9ed255a6c0f251018fe3223846231a` |
+| Variant | Codebook | Rate | Checkpoint |
+| :--- | ---: | ---: | :--- |
+| 8K | 8,192 | 650 bps | `models/relmcodec_8k.pt` |
+| 64K | 65,536 | 800 bps | `models/relmcodec_64k.pt` |
 
-The 8K checkpoint is the 200K perceptual-stage export. The 64K checkpoint is the available 50K additional fine-tune, selected by Log-Mel/PESQ/STOI on a separate 50-file dev set. The closest retained record to the paper's 64K table used an unavailable 30K fine-tune weight. [Checkpoint provenance](docs/CHECKPOINTS.md) records this distinction and the actual Euclidean VQ assignment rule used by the released weights.
+Each checkpoint is about 3.1 GB. The 8K checkpoint comes from the 200K perceptual stage; the 64K checkpoint is the best available retained fine-tune, selected on a separate development set. It differs from the weight behind the paper's 64K table. See [checkpoint notes](docs/CHECKPOINTS.md).
+
+**Supplementary stage-1 weights:** `models/relmcodec_8k_pre_perceptual.pt` and `models/relmcodec_64k_pre_perceptual.pt` capture the models before WavLM perceptual training. Use the same matching 8K or 64K config. The primary checkpoints in the table above are the perceptually trained models used for the release.
 
 ## Quick inference
 
@@ -42,7 +44,7 @@ Across 24 representations under a matched quantizer and language model, pre-quan
 
 ![Table 2 from the ReLMCodec paper: end-to-end reconstruction comparison](assets/paper-table-2-reconstruction.png)
 
-These images are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). Table 2 gives the **paper's** LibriSpeech reconstruction results. The released checkpoints were rerun on all 5,559 test-clean + test-other utterances for **Log-Mel, PESQ, STOI, WER, SIM, and UTMOS**. [Verified release results](docs/RESULTS.md) include exact metrics, per-file JSON, and checkpoint hashes; [Evaluation](docs/EVALUATION.md) gives the tested commands and external evaluator setup.
+These images are cropped from the [paper PDF](https://arxiv.org/pdf/2608.08286). Table 2 gives the paper's LibriSpeech reconstruction results. The [evaluation guide](docs/EVALUATION.md) explains how to score the released checkpoints.
 
 ## Scope and license
 
