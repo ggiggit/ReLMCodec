@@ -61,10 +61,14 @@ For ModelScope, install `.[hub-ms]` and pass `--source modelscope`. Use `--varia
 
 ## Reproduce reconstruction metrics
 
+Set `LIBRISPEECH_ROOT` to the directory containing `test-clean/` and `test-other/`.
+
 ```bash
+export USE_TF=0 TRANSFORMERS_NO_TF=1
+export LIBRISPEECH_ROOT=/absolute/path/to/LibriSpeech
 python -m pip install -e '.[eval]'
 python scripts/prepare_librispeech_eval.py \
-  --root /datasets/LibriSpeech --output-dir data/filelists
+  --root "$LIBRISPEECH_ROOT" --output-dir data/filelists
 python evaluate.py \
   --config configs/relmcodec_64k.yaml \
   --checkpoint models/relmcodec_64k.pt \
@@ -73,7 +77,7 @@ python evaluate.py \
   --result-json outputs/64k/metrics.json
 ```
 
-This computes Log-Mel, wide-band PESQ, and STOI for LibriSpeech test-clean + test-other. [Evaluation](docs/EVALUATION.md) documents the external WER, speaker-similarity, and UTMOS evaluators; [Verified results](docs/RESULTS.md) contains the complete fresh reconstruction run and per-file data. The P-VQ probes and downstream TTS systems in the paper require separately trained models.
+This 64K command was rerun on all **5,559** test-clean + test-other utterances with 5,559 valid scores for each core metric; the exact check is in [Verified results](docs/RESULTS.md). Add `--max-files 4` for a quick smoke run. [Evaluation](docs/EVALUATION.md) documents the separate WER, speaker-similarity, and UTMOS evaluators. The P-VQ probes and downstream TTS systems in the paper require separately trained models.
 
 ## Citation
 
