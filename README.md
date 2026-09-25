@@ -73,6 +73,7 @@ Input is converted to mono 16 kHz. Use the matching `relmcodec_8k.yaml` and `rel
 ### Reproduce the paper's reconstruction metrics
 
 ```bash
+python -m pip install -e '.[eval]'
 python scripts/prepare_librispeech_eval.py \
   --root /datasets/LibriSpeech \
   --output-dir data/filelists

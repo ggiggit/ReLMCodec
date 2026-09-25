@@ -1,6 +1,6 @@
 # Reconstruction evaluation
 
-This guide reproduces the **reconstruction** part of the ReLMCodec paper. It uses the complete LibriSpeech test-clean and test-other splits, not the 50-file dev set used to select the bundled 64K checkpoint. Run all commands from the repository root.
+This guide reproduces the **reconstruction** part of the ReLMCodec paper. It uses the complete LibriSpeech test-clean and test-other splits, not the 50-file dev set used to select the bundled 64K checkpoint. Run all commands from the repository root after installing `python -m pip install -e '.[eval]'` and downloading the matching checkpoint with `scripts/download_weights.py`.
 
 ## 1. Data and manifest
 
