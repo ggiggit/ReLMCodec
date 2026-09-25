@@ -98,6 +98,7 @@ This computes seven-resolution Log-Mel L1, wide-band PESQ, and STOI, and saves e
 | [`infer.py`](infer.py), [`evaluate.py`](evaluate.py) | Inference CLI and reconstruction evaluator |
 | [`scripts/`](scripts/) | Weight download, LibriSpeech manifests, smoke test, UTMOS scoring |
 | [`docs/`](docs/) | Inference, evaluation, results, and checkpoint provenance |
+| [`MODEL_CARD.md`](MODEL_CARD.md) | Model card mirrored on both weight hubs |
 
 The released codec weights support reconstruction and token extraction. The paper's P-VQ predictability probes and downstream TTS systems require separately trained models. The checkpoint implementation uses Euclidean VQ assignment although a manuscript description says L2-normalized assignment; [Checkpoint provenance](docs/CHECKPOINTS.md) explains why the configs follow the actual weights.
 
