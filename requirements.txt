@@ -1,0 +1,11 @@
+torch>=2.1,<2.10
+torchaudio>=2.1,<2.10
+transformers>=4.37,<5
+einops>=0.7
+numpy>=1.24
+soundfile>=0.12
+PyYAML>=6.0
+tqdm>=4.66
+pesq>=0.0.4
+pystoi>=0.4
+jiwer>=3.0

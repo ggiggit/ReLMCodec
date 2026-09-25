@@ -1,0 +1,27 @@
+# Inference architecture for the bundled checkpoint.
+model:
+  w2vbert_path: models/w2v-bert-2.0
+  ssl_layer: 17
+  codebook_size: 8192
+  codebook_dim: 8
+  alpha: 0.1
+  sample_rate: 16000
+  hop_length: 320
+  preencoder_dim: 384
+  preencoder_intermediate_dim: 2048
+  preencoder_layers: 12
+  decoder_dim: 1024
+  decoder_intermediate_dim: 4096
+  decoder_layers: 12
+  n_fft: 1280
+quantizer:
+  decay: 0.99
+  l2_normalize: false
+  kmeans_init: true
+  kmeans_iters: 200
+  commitment_weight: 1.0
+  threshold_ema_dead_code: 0.1
+  threshold_ema_dead_code_end: 0.0001
+  threshold_decay_steps: -1
+  data_pool_size: 524288
+  enable_expire: true

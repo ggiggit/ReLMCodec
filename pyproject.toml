@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "relmcodec"
+version = "0.1.0"
+description = "Inference and reconstruction evaluation for ReLMCodec"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.1,<2.10", "torchaudio>=2.1,<2.10", "transformers>=4.37,<5",
+  "einops>=0.7", "numpy>=1.24", "soundfile>=0.12", "PyYAML>=6.0", "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+eval = ["pesq>=0.0.4", "pystoi>=0.4", "jiwer>=3.0"]
+hub-hf = ["huggingface_hub>=0.35"]
+hub-ms = ["modelscope-hub>=0.4"]
+
+[tool.setuptools.packages.find]
+include = ["relmcodec*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+exclude = ["relmcodec/vendor"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

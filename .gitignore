@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+data/
+outputs/
+runs/
+*.log
+*.ckpt
+*.pth
+*.bin
+*.safetensors
+*.wav
+*.flac
+models/*.pt

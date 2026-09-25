@@ -1,0 +1,140 @@
+{
+  "status": "completed",
+  "test_name": "test_all",
+  "num_files": 5559,
+  "timestamp": "2026-06-16T08:51:47.034191",
+  "checkpoint": {
+    "path": "./workdir/w2vbert_codec_16k_vq_v2_encB_acoustic_residual_a01_ssl_jmas_wavlm_m05_m025_45_64k_mse_dim8_gan_wavlm_sv_percep_ft/step30000_mel1.2806.ckpt",
+    "step": 30000
+  },
+  "metrics": {
+    "mel_loss": {
+      "mean": 1.2633558830397444,
+      "std": 0.1182703476611059
+    },
+    "pesq": {
+      "mean": 2.3858961180016,
+      "std": 0.35829061187432576
+    },
+    "stoi": {
+      "mean": 0.9167509631482069,
+      "std": 0.028592442814158365
+    },
+    "utmos": {
+      "mean": 4.040196993342834,
+      "std": 0.3644065039864742
+    },
+    "cb_usage": 99.920654296875,
+    "cb_ppl": 52291.397025119564,
+    "token_distribution": {
+      "self_repeat_rate": 0.1636,
+      "H_token": 15.6743,
+      "H_token_given_phoneme": 13.7091,
+      "NMI_token_phoneme": 0.2284,
+      "token_purity": 0.0006,
+      "n_phoneme_pairs": 1668431,
+      "n_phonemes": 39
+    },
+    "wer": {
+      "mean": 0.04009141292769972,
+      "std": 0.10113829676780874,
+      "num_samples": 5559
+    },
+    "spk_sim": {
+      "mean": 0.8042,
+      "std": 0.0643,
+      "median": 0.8117,
+      "min": 0.4581,
+      "max": 0.9657
+    },
+    "phoneme_clustering": {
+      "preencoder": {
+        "silhouette_score": -0.043,
+        "calinski_harabasz": 81.86,
+        "davies_bouldin": 6.8483,
+        "knn_accuracy": 0.5259,
+        "homogeneity": 0.3837,
+        "completeness": 0.2991,
+        "v_measure": 0.3361,
+        "n_samples": 19500,
+        "n_classes": 39,
+        "feature_dim": 50
+      },
+      "ssl": {
+        "silhouette_score": -0.038,
+        "knn_accuracy": 0.5342,
+        "source": "baseline"
+      }
+    },
+    "sil_base": -0.0347,
+    "knn_base": 0.6633
+  },
+  "split_metrics": {
+    "clean": {
+      "num_files": 2620,
+      "mel_loss": {
+        "mean": 1.2339738874262527,
+        "std": 0.07939813067600843
+      },
+      "pesq": {
+        "mean": 2.511863436316716,
+        "std": 0.33463941634405203
+      },
+      "stoi": {
+        "mean": 0.9289303295443763,
+        "std": 0.022846755203065325
+      },
+      "utmos": {
+        "mean": 4.234367198616494,
+        "std": 0.24270209654672398
+      },
+      "cb_usage": 99.40338134765625,
+      "cb_ppl": 52047.39249558254,
+      "wer": {
+        "mean": 0.025217533340327312,
+        "std": 0.07459022076880024,
+        "num_samples": 2620
+      },
+      "spk_sim": {
+        "mean": 0.7995,
+        "std": 0.0634,
+        "median": 0.8074,
+        "min": 0.489,
+        "max": 0.9406
+      }
+    },
+    "other": {
+      "num_files": 2939,
+      "mel_loss": {
+        "mean": 1.289548747451908,
+        "std": 0.13921931954132613
+      },
+      "pesq": {
+        "mean": 2.2736013327053755,
+        "std": 0.34091988491209974
+      },
+      "stoi": {
+        "mean": 0.9058935490760859,
+        "std": 0.02882502395815319
+      },
+      "utmos": {
+        "mean": 3.8671020842523305,
+        "std": 0.36754369320719843
+      },
+      "cb_usage": 99.2950439453125,
+      "cb_ppl": 49282.084532221896,
+      "wer": {
+        "mean": 0.05335087686744648,
+        "std": 0.11838415389046024,
+        "num_samples": 2939
+      },
+      "spk_sim": {
+        "mean": 0.8084,
+        "std": 0.0649,
+        "median": 0.8162,
+        "min": 0.4581,
+        "max": 0.9657
+      }
+    }
+  }
+}
